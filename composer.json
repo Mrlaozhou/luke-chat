@@ -1,0 +1,14 @@
+{
+    "name": "mrlaozhou/ws-chat",
+    "description": "Package built by mrlaozhou/laravel-package .",
+    "homepage": "https://github.com/Mrlaozhou/laravel-package.git",
+    "authors": [
+        {
+            "name": "mrlaozhou",
+            "email": "zgs5999@163.com"
+        }
+    ],
+    "require": {
+        "hhxsv5/laravel-s": "^3.3"
+    }
+}
