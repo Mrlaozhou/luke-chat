@@ -52,14 +52,21 @@ class WsClient
             return $this->TYPE;
         }
 
+        //  参数形式
         if( ($type = request()->get('type')) && $this->clients()->has($type) ) {
-            return $type;
+            return $this->TYPE = $type;
         }
 
-        if( $this->clients()->whereStrict('domain', $http_origin = request()->server('HTTP_ORIGIN') )->isNotEmpty() ) {
-            return $this->clients()->pluck('name', 'domain')->get( $http_origin );
+        //  header形式
+        if( ($type = request()->header('type')) && $this->clients()->has($type) ) {
+            return $this->TYPE = $type;
         }
-        return 'visitor';
+
+        //  请求来源
+        if( $this->clients()->whereStrict('domain', $http_origin = request()->server('HTTP_ORIGIN') )->isNotEmpty() ) {
+            return $this->TYPE = $this->clients()->pluck('name', 'domain')->get( $http_origin );
+        }
+        return $this->TYPE = 'member';
     }
 
     /**

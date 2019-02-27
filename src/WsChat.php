@@ -2,6 +2,8 @@
 namespace Mrlaozhou\WsChat;
 
 use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
+use Mrlaozhou\WsChat\Concerns\Package;
+use Mrlaozhou\WsChat\Entities\Message;
 use Mrlaozhou\WsChat\Entities\WsClient;
 use Mrlaozhou\WsChat\Entities\WsConnection;
 use Mrlaozhou\WsChat\Entities\WsMessage;
@@ -30,13 +32,21 @@ class WsChat implements WebSocketHandlerInterface
             //  存储当前客户端用户
             $wsUser = $wsClient->rememberClientUser($request->fd);
             //  推送用户列表
-            $server->push($request->fd, $this->encodeClientData( $wsUser->contactsList() ) );
+            $server->push($request->fd, Package::encode( $wsUser->contactsList()->toArray() ) );
             //  推送未读消息
-            $wsUser->unreadMessage()->map(function ($item) use ($server, $request){
-                $server->push( $request->fd, $this->encodeClientData( $item ) );
+            $wsUser->unreadMessage()->map(function (Message $item) use ($server, $request){
+                $server->push( $request->fd, Package::messageEncode( $item ) );
             });
         } else {
             //  连接失败
+            $server->push( $request->fd, Package::encode([
+                'type'      =>  'system',
+                'form'      =>  0,
+                'to'        =>  $request->fd,
+                'at'        =>  time(),
+                'content'   =>  'Connect exception.',
+                'file'      =>  ''
+            ]) );
             $server->close($request->fd);
         }
     }
@@ -64,15 +74,5 @@ class WsChat implements WebSocketHandlerInterface
     {
         //  删除当前客户端用户
         WsUser::destroy($fd);
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return string
-     */
-    protected function encodeClientData(array $data = [])
-    {
-        return json_encode( $data, true );
     }
 }

@@ -42,21 +42,30 @@ class WsUser extends Model
                 $contacts->put(
                     'members',
                     static::members()
-                          ->where('id', '!=', $this->getKey())
+                          ->where('fd', '!=', $this->getKey())
                           ->get()
                 );
-                $student            =   static::students();
-
+                $contacts->put(
+                    'students',
+                    $this->model()->lessonStudents('headmaster_id')->get()
+                );
 
                 break;
             case 'guide':
                 //  获取成员、学员
-
+                $contacts->put(
+                    'members',
+                    static::members()
+                          ->where('fd', '!=', $this->getKey())
+                          ->get()
+                );
+                //  获取专业下学员
+                
                 break;
             default:
                 //  Members: 获取成员
                 $contacts       =   self::members()
-                                        ->where( 'id', '!=', $this->getKey() )
+                                        ->where( 'fd', '!=', $this->getKey() )
                                         ->get();
                 break;
         }

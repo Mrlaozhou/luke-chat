@@ -24,4 +24,12 @@ class Member extends Base
     {
         return $this->hasMany( Period::class, $foreignKey, 'id' )->with('atStudents');
     }
+
+    public function getMajorStudents(int $major)
+    {
+        //  获取专业下课程
+        //  获取课程下课期
+        //  获取课期下学员
+        //
+    }
 }

@@ -1,8 +1,10 @@
 <?php
 namespace Mrlaozhou\WsChat\Entities;
 
+use Illuminate\Support\Str;
 use Mrlaozhou\WsChat\Contracts\Client\Client;
 use Mrlaozhou\WsChat\Contracts\Connection\Connection;
+use Mrlaozhou\WsChat\Concerns\Package;
 
 class WsConnection
 {
@@ -35,20 +37,25 @@ class WsConnection
     /**
      * @param string $certificate
      *
-     * @return bool|mixed
+     * @return bool
      */
     public function validateCertificate(string $certificate)
     {
+        if( ! $certificate )
+            return false;
         //  请求客户端
         $httpClient                 =   new \GuzzleHttp\Client();
         //  请求地址
         $requestUrl                 =   $this->client()->payload('domain') . $this->client()->payload('user_api');
-        $result                     =   $httpClient->get($requestUrl, [
+
+        $result                     =   $httpClient->request( $this->client()->payload('auth_type'), $requestUrl, [
             'headers'           =>  [
-                'Authorization'     =>  'Bearer ' . $certificate,
+                $this->client()->payload('auth_key')     =>  'Bearer ' . $certificate,
+                "Content-Type"=>"application/x-www-form-urlencoded",
+                "x-requested-with"=>"XMLHttpRequest"
             ]
         ]);
-        if( ($result->getStatusCode() == 200) && ( $apiResult = json_decode( $result->getBody() ) ) && ($apiResult->code == 0) ) {
+        if( ($result->getStatusCode() == 200) && ( $apiResult = Package::decode( $result->getBody() ) ) && ($apiResult->code == 0) ) {
             $this->client()->setClientUserInfo( $apiResult->data );
             return $apiResult->data;
         }
@@ -62,7 +69,7 @@ class WsConnection
      */
     public function certificate(\swoole_http_request $request)
     {
-        return $request->cookie[ $this->client()->payload('auth_key') ];
+        return $request->header[ $auth_key = Str::lower( $this->client()->payload('auth_key') ) ] ?? ( $request->cookie[ $auth_key ] ?? '' );
     }
 
     /**
